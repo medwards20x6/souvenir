@@ -8,22 +8,25 @@ function CacheKey(Namespace, Options)
 	return Namespace + ":" + Crypto.createHash("md5").update(DeterministicStringify(Options)).digest("hex");
 }
 
+// Wrap a function F with the caching layer.
 // F: function(Options, Callback)
 //		with Callback: function(Error, Result)
-// Namespace: string, cache key namespace (so different function calls w/ same Options don't collide in cache)
-//		e.g. Namespace = "MyService.MyFunction"
-// TTL: integer (default 300), time to live in seconds.
-exports.CacheMe = function(F, Namespace, TTL)
+// Options: object with
+//		CacheErrors: boolean (default false)
+//		Namespace: string, cache key namespace (so different function calls w/ same Options don't collide in cache)
+//			e.g. Namespace = "MyService.MyFunction"
+//		TTL: integer (default 300), time to live in seconds.
+exports.CacheMe = function(F, Options)
 {
-	TTL = ~~TTL || 300;
+	var TTL = ~~Options.TTL || 300;
 
-	return function(Options, Callback)
+	return function(FOptions, Callback)
 	{
 		if (!CacheProvider) return FallThrough();
-		var Key = CacheKey(Namespace, Options);
+		var Key = CacheKey(Options.Namespace, FOptions);
 		CacheProvider.Get(Key, HandleCacheResponse);
 
-		function FallThrough() { F(Options, Callback); }
+		function FallThrough() { F(FOptions, Callback); }
 
 		function HandleCacheResponse(Error, Result)
 		{
@@ -33,11 +36,17 @@ exports.CacheMe = function(F, Namespace, TTL)
 			// If the result is cached, return it. Otherwise, add it.
 			if (Result) return Callback(Result.Error, Result.Result);
 
-			F(Options, SaveAndPassBack);
+			F(FOptions, SaveAndPassBack);
 
 			function SaveAndPassBack(E, R)
 			{
-				CacheProvider.Set(Key, { "Error": E, "Result": R }, TTL);
+				var CacheValue = {};
+				if (R) CacheValue.Result = R;
+				if (E && Options.CacheErrors) CacheValue.Error = E;
+
+				if (Object.keys(CacheValue).length > 0)
+					CacheProvider.Set(Key, CacheValue, TTL);
+
 				Callback(E, R);
 			}
 		}
