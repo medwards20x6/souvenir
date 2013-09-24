@@ -1,5 +1,6 @@
 souvenir
 ========
+<img src="http://i.imgur.com/JhjEVWD.jpg" />
 
 Flexible caching for a async functions
 
