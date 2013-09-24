@@ -15,7 +15,8 @@ A `CacheProvider` must be an object exposing functions:
 	* if `Result` is returned, it should be a javascript object in the form `{ "Error": ..., "Result": ... }`
 Note: it is the cache provider's job to expire cache entries based on `TTL`.
 
-Set(Key, Value, TTL, Callback)
+`Set(Key, Value, TTL, Callback)`
+
 * `Key` is the key under which to store the results
 * `TTL` is the time for the cache entry to live, in seconds
 * `Value` is a javascript object with keys `Error` and `Result`.
@@ -28,7 +29,7 @@ Set(Key, Value, TTL, Callback)
 
 Example
 ---
-	var FC = require("./util/function_cache");
+	var Souvenir = require("souvenir");
 
 	var Cache = {};
 
@@ -61,7 +62,7 @@ Example
 			}
 	};
 
-	FC.Initialize(MemoryCacheProvider);
+	Souvenir.Initialize(MemoryCacheProvider);
 
 	function abc(Options, Callback)
 	{
@@ -69,7 +70,7 @@ Example
 		Callback(null, JSON.stringify(Options));
 	}
 
-	var b = FC.CacheMe(abc, "testing.abc", 1);
+	var b = Souvenir.CacheMe(abc, "testing.abc", 1);
 
 	var Yes = "should be cached:";
 	var No = "should NOT be cached:";
@@ -79,5 +80,5 @@ Example
 	setTimeout(function() { console.log(Yes); b({ "a": 1, "b": 2 }, NOOP); }, 500);
 	setTimeout(function() { console.log(No); b({ "a": 1, "b": 2 }, NOOP); }, 1500);
 	setTimeout(function() { console.log(Yes); b({ "a": 1, "b": 2 }, NOOP); }, 2000);
-	setTimeout(function() { FC.Invalidate("testing.abc", { "a": 1, "b": 2 }); }, 2100);
+	setTimeout(function() { Souvenir.Invalidate("testing.abc", { "a": 1, "b": 2 }); }, 2100);
 	setTimeout(function() { console.log(No); b({ "a": 1, "b": 2 }, NOOP); }, 2200);
