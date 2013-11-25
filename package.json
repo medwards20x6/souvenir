@@ -9,6 +9,7 @@
 	},
 	"dependencies":
 	{
-		"json-stable-stringify": "0.0.1"
+		"json-stable-stringify": "0.0.1",
+		"async": "0.2.9"
 	}
 }
