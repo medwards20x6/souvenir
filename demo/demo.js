@@ -1,5 +1,5 @@
-var Souvenir = require("./souvenir");
-var Cache = new Souvenir.Cache(new Souvenir.MemoryCacheProvider());
+var Souvenir = require("..");
+var Cache = new Souvenir.Cache(new Souvenir.CacheProviders.Memory());
 
 // This function takes a full second to compute the sum!
 // Options: { "x": [number], "y": [number] }.
@@ -15,6 +15,7 @@ function SlowSum(Options, Callback)
 // The function Sum() is a drop-in replacement anywhere that SlowSum() was used,
 // but it caches results so they don't take a full second after the first call.
 var Sum = Cache.Wrap(SlowSum, { "Namespace": "SlowSum" });
+
 
 
 // See it in action...
