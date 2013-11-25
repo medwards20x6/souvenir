@@ -30,56 +30,39 @@ Note: it is the cache provider's job to expire cache entries based on `TTL`.
 
 Example
 ---
-	var Souvenir = require("souvenir");
+	var Souvenir = require("./souvenir");
+	var Cache = new Souvenir.Cache(new Souvenir.MemoryCacheProvider());
 
-	var Cache = {};
-
-	var MemoryCacheProvider =
+	// This function takes a full second to compute the sum!
+	// Options: { "x": [number], "y": [number] }.
+	function SlowSum(Options, Callback)
 	{
-		"Get":
-			function(Key, Callback)
-			{
-				var Cached = Cache[Key];
-				if (!Cached || Cached.Expiration < Date.now())
-				{
-					delete Cache[Key];
-					return Callback();
-				}
-				return Callback(null, Cached.Value);
-			},
-		"Set":
-			function(Key, Value, TTL, Callback)
-			{
-				Callback = Callback || function() {};
-				Cache[Key] = { "Expiration": Date.now() + ~~(1000 * TTL), "Value": Value };
-				Callback();
-			},
-		"Invalidate":
-			function(Key, Callback)
-			{
-				Callback = Callback || function() {};
-				delete Cache[Key];
-				Callback();
-			}
-	};
-
-	Souvenir.Initialize(MemoryCacheProvider);
-
-	function abc(Options, Callback)
-	{
-		console.log("NOT CACHED")
-		Callback(null, JSON.stringify(Options));
+		setTimeout
+		(
+			function() { Callback(null, Options.x + Options.y); },
+			1000
+		);
 	}
 
-	var b = Souvenir.CacheMe(abc, { "Namespace": "testing.abc", "TTL": 1 });
+	// The function Sum() is a drop-in replacement anywhere that SlowSum() was used,
+	// but it caches results so they don't take a full second after the first call.
+	var Sum = Cache.Wrap(SlowSum, { "Namespace": "SlowSum" });
 
-	var Yes = "should be cached:";
-	var No = "should NOT be cached:";
-	var NOOP = function() {};
+In this example, `SlowSum` is the function that you're already using -- a call out to the database or across the network. That function is left as it is, and `Sum` is the cache-wrapped version which can be used as a drop-in replacement everywhere that `SlowSum` was previously being called.
 
-	setTimeout(function() { console.log(No); b({ "a": 1, "b": 2 }, NOOP); }, 0);
-	setTimeout(function() { console.log(Yes); b({ "a": 1, "b": 2 }, NOOP); }, 500);
-	setTimeout(function() { console.log(No); b({ "a": 1, "b": 2 }, NOOP); }, 1500);
-	setTimeout(function() { console.log(Yes); b({ "a": 1, "b": 2 }, NOOP); }, 2000);
-	setTimeout(function() { Souvenir.Invalidate("testing.abc", { "a": 1, "b": 2 }); }, 2100);
-	setTimeout(function() { console.log(No); b({ "a": 1, "b": 2 }, NOOP); }, 2200);
+Here is some sample code to run `Sum` and time it:
+
+	// See it in action...
+	function TimeIt(Operation)
+	{
+		var Time = Date.now();
+		Operation(function(E, R) { console.log("1 + 1 = " + R + "; this took " + (Date.now() - Time) + " milliseconds"); });
+	}
+
+	TimeIt(function(CB) { Sum({ "x": 1, "y": 1 }, CB); });
+	setTimeout(function() { TimeIt(function(CB) { Sum({ "x": 1, "y": 1 }, CB); }); }, 1500);
+
+The output:
+
+	1 + 1 = 2; this took 1012 milliseconds
+	1 + 1 = 2; this took 0 milliseconds
