@@ -31,15 +31,17 @@ In this example, `SlowSum` is the function that you're already using -- e.g. a c
 
 Here is some sample code to run `Sum` and time it:
 
-	// See it in action...
-	function TimeIt(Operation)
-	{
-		var Time = Date.now();
-		Operation(function(E, R) { console.log("1 + 1 = " + R + "; this took " + (Date.now() - Time) + " milliseconds"); });
-	}
+```javascript
+// See it in action...
+function TimeIt(Operation)
+{
+	var Time = Date.now();
+	Operation(function(E, R) { console.log("1 + 1 = " + R + "; this took " + (Date.now() - Time) + " milliseconds"); });
+}
 
-	TimeIt(function(CB) { Sum({ "x": 1, "y": 1 }, CB); });
-	setTimeout(function() { TimeIt(function(CB) { Sum({ "x": 1, "y": 1 }, CB); }); }, 1500);
+TimeIt(function(CB) { Sum({ "x": 1, "y": 1 }, CB); });
+setTimeout(function() { TimeIt(function(CB) { Sum({ "x": 1, "y": 1 }, CB); }); }, 1500);
+```
 
 The output:
 
@@ -52,8 +54,10 @@ Souvenir
 ---
 A souvenir cache is created by
 
-	var Souvenir = require("souvenir");
-	var Cache = new Souvenir.Cache([CacheProvider]);
+```javascript
+var Souvenir = require("souvenir");
+var Cache = new Souvenir.Cache([CacheProvider]);
+```
 
 where `[CacheProvider]` is a cache provider, as defined below. The two cache providers that come with souvenir are `Souvenir.CacheProviders.Memory` and `Souvenir.CacheProviders.Redis`.
 
@@ -71,12 +75,14 @@ The souvenir cache `Cache` exposes the following methods:
 
 ####Example: only exporting the wrapped version of a slow function
 
-	function MySlowQuery(Options, Callback)
-	{
-		// perform some slow query then Callback(null, Result) once the result happens.
-	}
+```javascript
+function MySlowQuery(Options, Callback)
+{
+	// perform some slow query then Callback(null, Result) once the result happens.
+}
 
-	exports.MyQuery = Cache.Wrap(MySlowQuery, { "Namespace": "MyQuery", "TTL": 60 });
+exports.MyQuery = Cache.Wrap(MySlowQuery, { "Namespace": "MyQuery", "TTL": 60 });
+```
 
 
 ###`Cache.Invalidate(Namespace, Options, Callback)`
@@ -88,17 +94,19 @@ The souvenir cache `Cache` exposes the following methods:
 
 ####Example: invalidating a cache entry
 
-	...
-	exports.GetUser = Cache.Wrap(GetUser, { "Namespace": "GetUserNS" });
+```javascript
+...
+exports.GetUser = Cache.Wrap(GetUser, { "Namespace": "GetUserNS" });
 
-	...
+...
 
-	function UpdateUserName(Options)
-	{
-		...
-		// Make sure that subsequent calls to GetUser don't get stale data.
-		Cache.Invalidate("GetUserNS", { "UserID": Options.UserID });
-	}
+function UpdateUserName(Options)
+{
+	...
+	// Make sure that subsequent calls to GetUser don't get stale data.
+	Cache.Invalidate("GetUserNS", { "UserID": Options.UserID });
+}
+```
 
 
 Cache Providers
@@ -130,4 +138,3 @@ Note: it is the cache provider's job to expire cache entries based on `TTL`.
 
 * `Key`: is the key to be invalidated/deleted in the cache
 * `Callback`: optional `function(Error)` to be called when the operation finishes.
-
