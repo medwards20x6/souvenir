@@ -46,25 +46,87 @@ The output:
 	1 + 1 = 2; this took 0 milliseconds
 
 
-`CacheProvider` definition
+
+Souvenir
 ---
-A `CacheProvider` must be an object exposing functions:
+A souvenir cache is created by
 
-`Get(Key, Callback)`
+	var Souvenir = require("souvenir");
+	var Cache = new Souvenir.Cache([CacheProvider]);
 
-* `Key` is the key from which to retrieve the result
+where `[CacheProvider]` is a cache provider, as defined below. The two cache providers that come with souvenir are `Souvenir.CacheProviders.Memory` and `Souvenir.CacheProviders.Redis`.
+
+The souvenir cache `Cache` exposes the following methods:
+
+###`Cache.Wrap(Operation, CacheOptions)`
+
+* Wrap the function `Operation` in a souvenir caching layer.
+* `Operation`: `function(Options2, Callback)`, the function whose results are to be cached.
+	* Only the function prototype above is supported, but any function can (and should) be cast into that form (i.e. pass its parameters as a hash instead of as individual parameters).
+	* `Operation` is expected to call back with the customary `Callback(Error, Result)` pattern.
+* `CacheOptions`: optional object with
+	* `Namespace`: optional string, used for avoiding cache key collisions between functions that may receive the same arguments.
+	* `TTL`: optional integer (default 300), the number of seconds before cached function results will expire.
+
+####Example: only exporting the wrapped version of a slow function
+
+	function MySlowQuery(Options, Callback)
+	{
+		// perform some slow query then Callback(null, Result) once the result happens.
+	}
+
+	exports.MyQuery = Cache.Wrap(MySlowQuery, { "Namespace": "MyQuery", "TTL": 60 });
+
+
+###`Cache.Invalidate(Namespace, Options, Callback)`
+
+* Explicitly remove something from the cache.
+* `Namespace`: string, the namespace where results for the cached function are being kept.
+* `Options`: object, the input to the cached function whose result should be removed from the cache.
+* `Callback`: optional `function(Error)` to be called when the operation finishes.
+
+####Example: invalidating a cache entry
+
+	...
+	exports.GetUser = Cache.Wrap(GetUser, { "Namespace": "GetUserNS" });
+
+	...
+
+	function UpdateUserName(Options)
+	{
+		...
+		// Make sure that subsequent calls to GetUser don't get stale data.
+		Cache.Invalidate("GetUserNS", { "UserID": Options.UserID });
+	}
+
+
+Cache Providers
+---
+Souvenir is not tied to a particular way of storing cached data. The caching provider abstracts away the details of interacting with a particular type of storage. Souvenir comes with two caching providers: one for caching in memory and one for caching in redis. Others can be added on top.
+
+A cache provider is an object implementing the following interface:
+
+###`Get(Key, Callback)`
+
+* `Key`: string, the key to retrieve from the cache.
 * `Callback`: `function(Error, Result)`
-	* if the key is not found in cache, both `Error` and `Result` should be undefined.
-	* if `Result` is returned, it should be a javascript object with keys `Error` and/or `Result`.
+	* This method should be called once the data has been retrieved from the cache.
+	* If `Key` is not found in the cache, both `Error` and `Result` should be left falsy.
+	* If `Key` is found in the cache, the cached value should be passed back as `Result`.
+
+
+###`Set(Key, Value, TTL, Callback)`
+
+* `Key`: string, the key under which to store the value in the cache.
+* `Value`: object, the value to be stored in the cache.
+* `TTL`: integer, the number of seconds until the cached data should expire.
+* `Callback`: optional `function(Error)` to be called when the operation finishes.
+
 Note: it is the cache provider's job to expire cache entries based on `TTL`.
 
-`Set(Key, Value, TTL, Callback)`
 
-* `Key` is the key under which to store the results
-* `TTL` is the time for the cache entry to live, in seconds
-* `Value` is a javascript object with keys `Error` and/or `Result`.
+###`Invalidate(Key, Callback)`
+
+* `Key`: is the key to be invalidated/deleted in the cache
 * `Callback`: optional `function(Error)` to be called when the operation finishes.
 
-`Invalidate(Key, Callback)`
-* `Key` is the key to be invalidated/deleted in the cache
-* `Callback`: optional `function(Error)` to be called when the operation finishes.
