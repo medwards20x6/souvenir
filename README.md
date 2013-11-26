@@ -7,24 +7,25 @@ Unobtrusive caching for asynchronous functions.
 Example
 ---
 
+```javascript
+var Souvenir = require("souvenir");
+var Cache = new Souvenir.Cache(new Souvenir.CacheProviders.Memory());
 
-	var Souvenir = require("souvenir");
-	var Cache = new Souvenir.Cache(new Souvenir.CacheProviders.Memory());
+// This function takes a full second to compute the sum!
+// Options: { "x": [number], "y": [number] }.
+function SlowSum(Options, Callback)
+{
+	setTimeout
+	(
+		function() { Callback(null, Options.x + Options.y); },
+		1000
+	);
+}
 
-	// This function takes a full second to compute the sum!
-	// Options: { "x": [number], "y": [number] }.
-	function SlowSum(Options, Callback)
-	{
-		setTimeout
-		(
-			function() { Callback(null, Options.x + Options.y); },
-			1000
-		);
-	}
-
-	// The function Sum() is a drop-in replacement anywhere that SlowSum() was used,
-	// but it caches results so they don't take a full second after the first call.
-	var Sum = Cache.Wrap(SlowSum, { "Namespace": "SlowSum" });
+// The function Sum() is a drop-in replacement anywhere that SlowSum() was used,
+// but it caches results so they don't take a full second after the first call.
+var Sum = Cache.Wrap(SlowSum, { "Namespace": "SlowSum" });
+```
 
 In this example, `SlowSum` is the function that you're already using -- e.g. a call out to the database or across the network. That function is left as it is, and `Sum` is the cache-wrapped version which can be used as a drop-in replacement everywhere that `SlowSum` was previously being called.
 
