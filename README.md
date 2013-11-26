@@ -66,7 +66,7 @@ The souvenir cache `Cache` exposes the following methods:
 ###`Cache.Wrap(Operation, CacheOptions)`
 
 * Wrap the function `Operation` in a souvenir caching layer.
-* `Operation`: `function(Options2, Callback)`, the function whose results are to be cached.
+* `Operation`: `function(Options, Callback)`, the function whose results are to be cached.
 	* Only the function prototype above is supported, but any function can (and should) be cast into that form (i.e. pass its parameters as a hash instead of as individual parameters).
 	* `Operation` is expected to call back with the customary `Callback(Error, Result)` pattern.
 * `CacheOptions`: optional object with
@@ -113,7 +113,7 @@ Cache Providers
 ---
 Souvenir is not tied to a particular way of storing cached data. The caching provider abstracts away the details of interacting with a particular type of storage. Souvenir comes with two caching providers: one for caching in memory and one for caching in redis. Others can be added on top.
 
-A cache provider is an object implementing the following interface:
+A cache provider is an object implementing the following interface to a key/value store:
 
 ###`Get(Key, Callback)`
 
@@ -128,7 +128,7 @@ A cache provider is an object implementing the following interface:
 
 * `Key`: string, the key under which to store the value in the cache.
 * `Value`: object, the value to be stored in the cache.
-* `TTL`: integer, the number of seconds until the cached data should expire.
+* `TTL`: integer, the number of seconds until the cached data should expire (time-to-live).
 * `Callback`: optional `function(Error)` to be called when the operation finishes.
 
 Note: it is the cache provider's job to expire cache entries based on `TTL`.
