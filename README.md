@@ -61,22 +61,26 @@ A souvenir cache is created by
 
 ```javascript
 var Souvenir = require("souvenir");
-var Cache = new Souvenir.Cache([CacheProvider]);
+var Cache = new Souvenir.Cache([CacheProvider], [CacheOptions]);
 ```
 
 where `[CacheProvider]` is a cache provider, as defined below. The two cache providers that come with souvenir are `Souvenir.CacheProviders.Memory` and `Souvenir.CacheProviders.Redis`.
 
+`CacheOptions` is an optional object with
+
+* `DefaultTTL`: optional integer (default 300), the number of seconds before cache entries will expire. This can be overridden on a per-function basis.
+
 The souvenir cache `Cache` exposes the following methods:
 
-###`Cache.Wrap(Operation, CacheOptions)`
+###`Cache.Wrap(Operation, WrapOptions)`
 
 * Wrap the function `Operation` in a souvenir caching layer.
 * `Operation`: `function(Options, Callback)`, the function whose results are to be cached.
 	* Only the function prototype above is supported, but any function can (and should) be cast into that form (i.e. pass its parameters as a hash instead of as individual parameters).
 	* `Operation` is expected to call back with the customary `Callback(Error, Result)` pattern.
-* `CacheOptions`: optional object with
+* `WrapOptions`: optional object with
 	* `Namespace`: optional string, used for avoiding cache key collisions between functions that may receive the same arguments.
-	* `TTL`: optional integer (default 300), the number of seconds before cached function results will expire.
+	* `TTL`: optional integer (default CacheOptions.DefaultTTL), the number of seconds before cached function results will expire.
 
 ####Example: only exporting the wrapped version of a slow function
 
