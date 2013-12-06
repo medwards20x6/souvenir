@@ -1,10 +1,15 @@
 souvenir
 ========
-<img src="http://i.imgur.com/JhjEVWD.jpg" />
-
 Unobtrusive caching for asynchronous functions.
 
-Example
+<img src="http://i.imgur.com/JhjEVWD.jpg" />
+
+Installation
+---
+
+	$ npm install souvenir
+
+Usage
 ---
 
 ```javascript
