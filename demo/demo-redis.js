@@ -1,5 +1,6 @@
 var Souvenir = require("..");
-var Cache = new Souvenir.Cache(new Souvenir.CacheProviders.Redis(require("redis")));
+var RedisClient = require("redis").createClient();
+var Cache = new Souvenir.Cache(new Souvenir.CacheProviders.Redis(RedisClient));
 
 // This function takes a full second to compute the sum!
 // Options: { "x": [number], "y": [number] }.
