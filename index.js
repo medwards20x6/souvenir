@@ -4,6 +4,7 @@ module.exports =
 	"CacheProviders":
 	{
 		"Memory": require("./lib/cache_providers/memory"),
-		"Redis": require("./lib/cache_providers/redis")
+		"Redis": require("./lib/cache_providers/redis"),
+		"LazyExpireMemory": require("./lib/cache_providers/lazyExpireMemory")
 	}
 };
