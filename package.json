@@ -1,7 +1,7 @@
 {
 	"name": "souvenir",
 	"description": "Unobtrusive caching for async functions",
-	"version": "0.2.1",
+	"version": "0.2.1b",
 	"repository":
 	{
 		"type": "git",
